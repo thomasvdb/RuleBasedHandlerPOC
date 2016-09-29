@@ -42,7 +42,7 @@ namespace RuleBasedHandlerPOC
                 new Rule ( "AppStartups", ExpressionType.Equal, "2")
             };
 
-            var compiledRules = PrecompiledRules.CompileRule(new List<UserProperties>(), rules);
+            var compiledRules = PrecompiledRules.CompileRule<UserProperties>(rules);
 
             _rules = new UserPropertyRule[2];
             _rules[0] = new UserPropertyRule
