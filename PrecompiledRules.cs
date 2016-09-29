@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -33,7 +34,8 @@ namespace RuleBasedHandlerPOC
                     }
                 }
 
-                var value = Expression.Constant(Convert.ChangeType(rule.ComparisonValue, propertyType));
+                var converter = TypeDescriptor.GetConverter(propertyType);
+                var value = Expression.Constant(converter.ConvertFrom(rule.ComparisonValue));
                 var binaryExpression = Expression.MakeBinary(rule.ComparisonOperator, key, value);
 
                 compiledRules.Add(Expression.Lambda<Func<T, bool>>(binaryExpression, genericType).Compile());
