@@ -24,25 +24,28 @@ namespace RuleBasedHandlerPOC
     public class UserPropertyRule
     {
         public string Name { get; set; }
-        public List<Func<UserProperties, bool>> Rule { get; set; }
+        public List<Func<IUserProperties, bool>> Rule { get; set; }
         public Action ActionToExecuteOnMatch { get; set; }
         public bool IsHandled { get; set; }
         public RuleCategory Category { get; set; }
     }
 
-    public class RuleHandler
+    public class RuleHandler : IRuleHandler
     {
         private UserPropertyRule[] _rules;
+        private IUserProperties _properties;
 
-        public RuleHandler()
+        public RuleHandler(IUserProperties properties)
         {
+            _properties = properties;
+
             List<Rule> rules = new List<Rule>
             {
                 // Create some rules using LINQ.ExpressionTypes for the comparison operators
                 new Rule ( "AppStartups", ExpressionType.Equal, "2")
             };
 
-            var compiledRules = PrecompiledRules.CompileRule<UserProperties>(rules);
+            var compiledRules = PrecompiledRules.CompileRule<IUserProperties>(rules);
 
             _rules = new UserPropertyRule[2];
             _rules[0] = new UserPropertyRule
@@ -67,12 +70,9 @@ namespace RuleBasedHandlerPOC
         public void RunRules(RuleCategory[] ruleCategories)
         {
             var matchingRulesByCategory = _rules.Where(rule => ruleCategories.Contains(rule.Category));
-            var userProperties = new UserProperties();
-            userProperties.AppStartups = 2;
-
             foreach (var rule in matchingRulesByCategory)
             {
-                if (rule.Rule.TakeWhile(testRule => testRule(userProperties)).Any())
+                if (rule.Rule.TakeWhile(testRule => testRule(_properties)).Any())
                 {
                     rule.ActionToExecuteOnMatch();
                     rule.IsHandled = true;
@@ -80,6 +80,14 @@ namespace RuleBasedHandlerPOC
                 }
             }
         }
+    }
+
+    public interface IUserProperties
+    {
+    }
+
+    public interface IRuleHandler
+    {
     }
 }
 
